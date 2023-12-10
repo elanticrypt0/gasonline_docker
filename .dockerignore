@@ -1,4 +1,6 @@
+.dockerignore
 Dockerfile
+README.md
 
 wui/.dockerignore
 wui/node_modules/*
@@ -6,9 +8,9 @@ wui/node_modules
 wui/package-lock.json
 wui/.git
 wui/.gitignore
+wui/README.md
 
-.dockerignore
-
-wui/.git
-wui/.gitignore
-README.md
+go_app/.dockerignore
+go_app/.git
+go_app/.gitignore
+go_app/README.md
