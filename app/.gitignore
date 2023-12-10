@@ -1,0 +1,5 @@
+_db
+go.sum
+config/appconfig.toml
+build
+pkg/ws

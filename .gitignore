@@ -1,0 +1,8 @@
+.vscode
+.idea
+
+.env
+
+bin/amd64/*
+bin/arm/*
+

@@ -1,0 +1,14 @@
+Dockerfile
+
+wui/.dockerignore
+wui/node_modules/*
+wui/node_modules
+wui/package-lock.json
+wui/.git
+wui/.gitignore
+
+.dockerignore
+
+wui/.git
+wui/.gitignore
+README.md
