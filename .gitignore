@@ -3,6 +3,13 @@
 
 .env
 
+app/wui/.vscode
+
+app/go_app/.git
+
+app/go_app2
+app/go_app3
+
 bin/amd64/*
 bin/arm/*
 

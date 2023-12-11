@@ -2,6 +2,8 @@
 Dockerfile
 README.md
 
+wui/.vscode
+wui/.idea
 wui/.dockerignore
 wui/node_modules/*
 wui/node_modules

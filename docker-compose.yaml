@@ -2,53 +2,48 @@ version: '3.8'
 
 services:
   db:
+    container_name: app-db
     image: postgres:alpine
     environment:
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
     ports:
       - "${DB_PORT}:5432"
     expose:
       - ${DB_PORT}
     volumes:
-      - postgres-db:/var/lib/postgresql/data
+      - ${DB_DIR}:/var/lib/postgresql/data
     restart: always
   # BACKEND
   app:
+    container_name: app-go
     build:
       # path a Dockerfile
       context: .
       # stage
       target: ${GO_STAGE}
-      # Archivo Dockerfile
-      dockerfile: Dockerfile
-    env_file:
-      - .
     ports:
       - "${APP_PORT}:65065"
     volumes:
-      - ${APP_DIR}:/app
-    command: air ./cmd/main.go -b 0.0.0.0
+      - ${APP_DIR}:/app/go_app
+    # command: air ./cmd/main.go -b 0.0.0.0
     expose:
       - ${APP_PORT}
     depends_on:
       - db
   # FRONT-END
   wui:
+    container_name: app-wui
     build:
       # path a Dockerfile
       context: .
       # stage
       target: ${WUI_STAGE}
-      # Archivo Dockerfile
-      dockerfile: Dockerfile
-    env_file:
-      - .
     ports:
       - "${WUI_PORT}:4321"
     volumes:
-      - ${WUI_DIR}:/wui
+      - ${WUI_DIR}:/app/wui
     expose:
       - ${WUI_PORT}
     depends_on:
@@ -57,3 +52,7 @@ services:
 volumes:
   postgres-db:
     external: false
+  app:
+    external: true
+  wui:
+    external: true

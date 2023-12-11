@@ -1,0 +1,1 @@
+activar hot-reload en go_app

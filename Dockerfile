@@ -2,34 +2,40 @@
 # GOLANG
 #-------------------------------------
 
-FROM golang:alpine3.19 as go_dev
-EXPOSE 3001
-# GOLANG APP
-WORKDIR /app/go_app
+FROM golang:latest as go_dev
 
-COPY ./go_app/. ./
+WORKDIR /app
+
+# RUN apk install git
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/elanticrypt0/gasonline go_app
+
+# GOLANG APP
+COPY ./app/go_app/. ./
+
+WORKDIR /app/go_app
 
 RUN go mod tidy
 
 # hot reload
-RUN go install github.com/cosmtrek/air@latest
+# RUN go install github.com/cosmtrek/air@latest
 
 # Go app testing fase
-FROM golang:alpine3.19 as go_testing
-
-RUN go test test/.
+FROM golang:latest as go_testing
 
 # GOLANG APP
 WORKDIR /app/go_app
 COPY --from=go_dev ./app/go_app/. ./
+RUN go mod tidy
 
+# RUN go test test/.
 RUN go test
 
 # build binaries for amd64
-FROM golang:alpine3.19 as build-amd64
+FROM golang:latest as build-amd64
 
 # GOLANG APP
-WORKDIR /var/bin/amd64
+WORKDIR /app/bin/amd64
 COPY --from=go_dev ./app/go_app/. /app/go_app
 
 RUN rm -rf ./
@@ -46,7 +52,7 @@ RUN cd ../../go_app && \
     && chmod +x app \
     && cd ../bin/amd64
 
-COPY ./go_app/app ./
+COPY ./app/go_app/app ./
 
 # COPY
 COPY --from=go_dev /app/go_app/config/. ./config
@@ -55,9 +61,9 @@ COPY --from=go_dev /app/go_app/seeds/. ./seeds
 #web user interface
 COPY --from=wui_build /app/wui/dist/. ./public
 
-FROM golang:alpine3.19 as build-arm
+FROM golang:latest as build-arm
 
-WORKDIR /var/bin/arm
+WORKDIR /app/bin/arm
 
 RUN rm -rf ./.
 
@@ -73,19 +79,22 @@ RUN cd ../../go_app && \
     && chmod +x app \
     && cd ../bin/amd64
 
-COPY ./go_app/app ./
+COPY ./app/go_app/app ./
 
 # COPY
-COPY --from=go_dev ./go_app/config/. ./config
-COPY --from=go_dev ./go_app/seeds/. ./seeds
+COPY --from=go_dev ./app/go_app/config/. ./config
+COPY --from=go_dev ./app/go_app/seeds/. ./seeds
 
 #web user interface
 COPY --from=wui_build /app/wui/dist/. ./public
 
 # última etapa
-FROM golang:alpine3.19 AS go_dev_runner
+FROM golang:latest AS go_dev_runner
+EXPOSE 65065
 WORKDIR /app/go_app
-COPY --from=go_dev ./. ./
+COPY --from=go_dev ./app/go_app/. ./
+RUN go mod tidy
+
 # comando para iniciar la app
 CMD [ "go","run","." ]
 
@@ -94,21 +103,20 @@ CMD [ "go","run","." ]
 #-------------------------------------
 
 # CREAR Web User Interface
-FROM node:current-alpine3.18 as wui_dev
+FROM node:latest as wui_dev
 
 WORKDIR /app/wui
 
-COPY ./wui/. ./
+COPY ./app/wui/. ./
 
 RUN npm install
 
-
 # esta es una nueva etapa
-FROM node:current-alpine3.18 AS wui_testing
+FROM node:latest AS wui_testing
 WORKDIR /app/wui
 # Esto copia los archivos de otro stage
 COPY --from=wui_dev ./app/wui/. ./
-COPY --from=wui_dev ./app/wui/node_modules/. ./node_modules
+
 
 # realiza las pruebas automáticas
 RUN npm run test
@@ -116,22 +124,23 @@ RUN npm run test
 RUN rm -rf ./node_modules
 
 # esta es una nueva etapa
-FROM node:current-alpine3.18 AS wui_build
+FROM node:latest AS wui_build
 WORKDIR /app/wui
 # Esto copia los archivos de otro stage
 COPY --from=wui_testing ./app/wui/. ./.
-COPY --from=wui_dev ./app/wui/node_modules/. ./node_modules
+
 
 # crea el build
 RUN npm run astro build
 
 # última etapa
-FROM node:current-alpine3.18 AS wui_dev_runner
+FROM node:latest AS wui_dev_runner
 EXPOSE 4321
 WORKDIR /app/wui
 COPY --from=wui_dev ./app/wui/. ./
-COPY --from=wui_dev ./app/wui/node_modules/. ./node_modules
+
+RUN npm install -g astro
 
 # comando para iniciar la app
-CMD [ "npm","run","dev" ]
+CMD [ "npm","run","start" ]
 
